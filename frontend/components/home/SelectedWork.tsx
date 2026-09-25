@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Project } from "@/types/api";
-import { getMediaUrl } from "@/lib/api";
+import ProjectMediaImage from "@/components/ui/ProjectMediaImage";
 
 interface SelectedWorkProps {
   projects: Project[];
@@ -66,42 +66,14 @@ export default function SelectedWork({ projects, showViewAllCTA = true }: Select
                 {/* Visual Canvas or Uploaded Image */}
                 <Link
                   href={`/projects/${project.slug}`}
-                  className="relative mb-8 aspect-16/10 w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 shadow-xs transition-all duration-300 group-hover:border-zinc-400 block"
+                  className="mb-8 block group"
                 >
-                  {(project.thumbnail_url || project.image_url) ? (
-                    <div className="absolute inset-0 overflow-hidden bg-zinc-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={getMediaUrl(project.thumbnail_url || project.image_url)}
-                        alt={project.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex h-full flex-col justify-between">
-                      {/* Mockup Header */}
-                      <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-zinc-900">
-                          {project.title}
-                        </span>
-                        <span className="font-mono text-[10px] text-zinc-400">
-                          {project.category}
-                        </span>
-                      </div>
-
-                      {/* Center Graphic */}
-                      <div className="my-auto text-center py-4">
-                        <div className="inline-block rounded-lg border border-zinc-200/80 bg-zinc-50 px-5 py-2.5 font-mono text-xs font-semibold text-zinc-900">
-                          {project.title}
-                        </div>
-                      </div>
-
-                      {/* Footer Stack Indicator */}
-                      <div className="border-t border-zinc-100 pt-2.5 font-mono text-[10px] text-zinc-400 text-right">
-                        <span>Full-Stack Architecture</span>
-                      </div>
-                    </div>
-                  )}
+                  <ProjectMediaImage
+                    src={project.thumbnail_url || project.image_url}
+                    alt={project.title}
+                    title={project.title}
+                    category={project.category}
+                  />
                 </Link>
 
                 {/* Technologies & CTA Link */}

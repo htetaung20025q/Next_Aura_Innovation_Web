@@ -28,6 +28,10 @@ export function getMediaUrl(path?: string | null): string {
     return path;
   }
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  if (process.env.NEXT_PUBLIC_MEDIA_URL) {
+    const cleanMediaBase = process.env.NEXT_PUBLIC_MEDIA_URL.replace(/\/+$/, "");
+    return `${cleanMediaBase}${cleanPath}`;
+  }
   if (typeof window === "undefined") {
     return `${BACKEND_BASE_URL}${cleanPath}`;
   }

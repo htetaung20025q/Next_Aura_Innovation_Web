@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, CheckCircle2, Cpu, Globe, Layers } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { api, defaultProjects, defaultSiteSettings, getMediaUrl } from "@/lib/api";
+import ProjectMediaImage from "@/components/ui/ProjectMediaImage";
+import { api, defaultProjects, defaultSiteSettings } from "@/lib/api";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
@@ -127,20 +128,18 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </section>
 
         {/* Project Visual Showcase */}
-        {displayImage && (
-          <section className="border-b border-zinc-200/80 bg-zinc-50/50 py-10 sm:py-16">
-            <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
-              <div className="relative aspect-16/9 sm:aspect-21/9 w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={getMediaUrl(displayImage)}
-                  alt={project.title}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </div>
-          </section>
-        )}
+        <section className="border-b border-zinc-200/80 bg-zinc-50/50 py-10 sm:py-16">
+          <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+            <ProjectMediaImage
+              src={displayImage}
+              alt={project.title}
+              title={project.title}
+              category={project.category}
+              aspectClass="aspect-16/9 sm:aspect-21/9"
+              showFooter={false}
+            />
+          </div>
+        </section>
 
         {/* Project Architecture & System Canvas */}
         <section className="border-b border-zinc-200/80 bg-zinc-50/50 py-16 sm:py-24">
