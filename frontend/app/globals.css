@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #FFFFFF;
+    --foreground: #09090B;
+    --muted-foreground: #52525B;
+    --border-subtle: #E4E4E7;
+    --card-bg: #FFFFFF;
+    --card-surface: #F9FAFB;
+    --dark-surface: #111111;
+  }
+
+  * {
+    border-color: var(--border-subtle);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: #18181B;
+    color: #FFFFFF;
+  }
+}
+
+/* Custom Editorial Studio Utilities */
+.section-tracker {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #71717A;
+  font-weight: 500;
+}
+
+.editorial-title {
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  color: #09090B;
+  text-transform: uppercase;
+}
+
+.hairline-divider {
+  border-color: #E4E4E7;
+}
+
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(228, 228, 231, 0.7);
+}
+
+.card-hover {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: #A1A1AA;
+}
