@@ -19,15 +19,38 @@ export default function AdminLoginPage() {
     setError("");
 
     try {
-      const res = await api.adminLogin(username, password);
+      const res = await api.adminLogin(username.trim(), password);
       if (res?.access_token) {
         localStorage.setItem("next_aura_admin_token", res.access_token);
         router.push("/admin");
       } else {
-        setError("Invalid credentials received.");
+        setError("Invalid response received from authentication server.");
       }
-    } catch {
-      setError("Authentication failed. Please verify your credentials.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        const errorAny = err as { status?: number; detail?: string };
+        if (errorAny.status === 401) {
+          setError(errorAny.detail || "Incorrect username or password. Please verify your credentials.");
+        } else if (errorAny.status === 404) {
+          setError(
+            "Authentication endpoint not found (404). Please ensure NEXT_PUBLIC_API_URL or backend API proxy is properly configured."
+          );
+        } else if (errorAny.status === 500) {
+          setError("Backend server error (500). Please verify database connection.");
+        } else if (
+          err.message.includes("Cannot connect to API") ||
+          err.message.includes("Network request failed") ||
+          err.message.includes("Failed to fetch")
+        ) {
+          setError(
+            "Cannot connect to the FastAPI backend API server. Verify that the backend is deployed, running, and that CORS permits requests from this Vercel domain."
+          );
+        } else {
+          setError(err.message || "Authentication failed. Please verify your credentials.");
+        }
+      } else {
+        setError("Authentication failed. Please verify your credentials.");
+      }
     } finally {
       setLoading(false);
     }

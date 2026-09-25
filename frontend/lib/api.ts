@@ -13,8 +13,29 @@ import {
   SiteSettings,
 } from "@/types/api";
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+export function resolveApiBaseUrl(): string {
+  // If explicitly specified in environment:
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (envUrl) {
+    const clean = envUrl.replace(/\/+$/, "");
+    return clean.endsWith("/api") ? clean : `${clean}/api`;
+  }
+  // When running in the browser and no NEXT_PUBLIC_API_URL is set:
+  if (typeof window !== "undefined") {
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    if (isLocalhost) {
+      return "http://localhost:8000/api";
+    }
+    // On a remote host (e.g. Vercel) when NEXT_PUBLIC_API_URL wasn't provided at build time,
+    // use relative "/api" so Next.js rewrites can proxy it without failing on localhost!
+    return "/api";
+  }
+  return "http://localhost:8000/api";
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 export const BACKEND_BASE_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -38,20 +59,52 @@ export function getMediaUrl(path?: string | null): string {
   return cleanPath;
 }
 
-async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+export class ApiError extends Error {
+  status?: number;
+  detail?: string;
 
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
-    cache: "no-store",
-  });
+  constructor(message: string, status?: number, detail?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
+async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const base = resolveApiBaseUrl();
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const url = `${base}${cleanEndpoint}`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options?.headers || {}),
+      },
+      cache: "no-store",
+    });
+  } catch (err) {
+    const networkMsg = err instanceof Error ? err.message : "Network request failed";
+    throw new ApiError(
+      `Cannot connect to API at ${url}. ${networkMsg}. Verify that the FastAPI backend is running and that CORS allows this origin.`,
+      0,
+      networkMsg
+    );
+  }
 
   if (!res.ok) {
-    throw new Error(`API error ${res.status}: ${res.statusText} at ${url}`);
+    let errorDetail = "";
+    try {
+      const errJson = await res.json();
+      errorDetail = errJson.detail || errJson.message || "";
+    } catch {
+      // Body not JSON
+    }
+    const msg = errorDetail || `API error ${res.status}: ${res.statusText || "Request failed"} at ${url}`;
+    throw new ApiError(msg, res.status, errorDetail);
   }
 
   return res.json();
@@ -407,6 +460,18 @@ export const api = {
       body: JSON.stringify({ username, password }),
       cache: "no-store",
     });
+  },
+
+  verifyAuth: async (token: string): Promise<boolean> => {
+    try {
+      await fetchAPI("/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      return true;
+    } catch {
+      return false;
+    }
   },
 
   getAdminStats: async (token: string): Promise<import("@/types/api").DashboardStats> => {
